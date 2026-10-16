@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Muse 邀请码接力池</title>
+<meta name="description" content="拿一个码，留一个码——Muse 邀请码接力池">
+<style>
+  :root{
+    --paper:#FAF7F1;
+    --card:#FFFFFF;
+    --ink:#1C1814;
+    --muted:#6F6459;
+    --line:#E7DFD3;
+    --accent:#C2410C;
+    --accent-deep:#9A3412;
+    --accent-soft:#FBEEDF;
+    --ok:#2F7D4F;
+    --ok-soft:#E7F2EA;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--paper);color:var(--ink);
+    line-height:1.7;-webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:20px 16px 72px}
+
+  /* 顶栏 */
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .logo{width:38px;height:38px;border-radius:12px;background:var(--ink);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  .top h1{font-size:20px;letter-spacing:.5px}
+  .tagline{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .tagline b{color:var(--ink)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(28,24,20,.04)}
+  .card h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;
+    font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+
+  /* 当前码 */
+  .now-label{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .code-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .code-big{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:40px;font-weight:800;letter-spacing:6px;background:var(--accent-soft);
+    border:1px dashed var(--accent);border-radius:12px;padding:8px 18px;color:var(--ink)}
+  .badge{font-size:12px;font-weight:700;color:#fff;background:var(--accent);
+    border-radius:999px;padding:3px 12px;white-space:nowrap}
+  .meta{display:flex;gap:16px;margin:14px 0;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .meta b{color:var(--ink);font-size:15px}
+  .btn{display:inline-block;border:none;cursor:pointer;border-radius:12px;
+    font-size:16px;font-weight:700;padding:13px 22px;background:var(--accent);color:#fff;
+    transition:background .15s}
+  .btn:active{background:var(--accent-deep)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:active{background:#F3EEE6}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+  .warn{margin-top:14px;background:#FFF7E8;border:1px solid #F0DCB4;border-radius:10px;
+    padding:10px 14px;font-size:13px;color:#7A5410}
+  .warn b{color:var(--accent-deep)}
+
+  /* 步骤 */
+  .step{display:flex;gap:12px;margin-bottom:14px}
+  .step:last-child{margin-bottom:0}
+  .step .n{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);
+    color:var(--accent-deep);font-weight:800;font-size:14px;flex:none;
+    display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .step p{font-size:15px}
+  .step code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#F3EEE6;
+    border-radius:6px;padding:1px 7px;font-size:14px}
+
+  /* 留码表单 */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
+  .field input{width:100%;font-size:18px;padding:12px 14px;border:1px solid var(--line);
+    border-radius:12px;background:#FFFDF9;font-family:ui-monospace,Menlo,Consolas,monospace;
+    letter-spacing:3px;text-transform:uppercase;color:var(--ink)}
+  .field input.num{font-family:inherit;letter-spacing:0}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .demo-note{background:#F4F1EC;border:1px dashed #C9BFAE;border-radius:10px;
+    padding:10px 14px;font-size:13px;color:var(--muted);margin-top:14px}
+
+  /* 池列表 */
+  .pool-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;
+    display:flex;align-items:center;gap:12px;background:#FFFDF9}
+  .pool-item .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;
+    font-weight:800;letter-spacing:3px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .pool-item .info{font-size:12px;color:var(--muted);white-space:nowrap}
+  .pool-item .info b{color:var(--ink)}
+  .mini{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;
+    font-size:14px;font-weight:700;cursor:pointer;color:var(--accent-deep)}
+  .mini:active{background:var(--accent-soft)}
+  .empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 0}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;font-size:15px;font-weight:600;border-radius:999px;
+    padding:12px 26px;opacity:0;pointer-events:none;transition:all .25s;z-index:99;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  footer{margin-top:28px;color:var(--muted);font-size:12px;text-align:center;line-height:2}
+  footer b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="logo">接</div>
+    <h1>Muse 邀请码接力池</h1>
+  </div>
+  <p class="tagline">拿一个码，留一个码。<b>Muse</b> 是一个能全自动干活的私人 AI 助理——你动嘴，它动手。</p>
+
+  <!-- 当前可用码 -->
+  <div class="card">
+    <h2><span class="n">1</span>拿一个码</h2>
+    <div class="now-label">当前展示的可用码（优先「剩余次数多 / 最新留下」）：</div>
+    <div class="code-row">
+      <div class="code-big" id="nowCode">RXQT1I</div>
+      <span class="badge" id="nowBadge">站长码</span>
+    </div>
+    <div class="meta">
+      <span>剩余次数 <b id="nowRemain">未知</b></span>
+      <span>本页取用计数 <b id="nowTaken">0</b></span>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="copyNow">复制邀请码</button>
+      <button class="btn ghost" id="takeNow">我用完了，换下一个</button>
+    </div>
+    <div class="warn">注意：<b>第 5 位是数字 1，不是字母 I</b>。填错一位就兑换失败，别手滑。</div>
+  </div>
+
+  <!-- 兑换三步 -->
+  <div class="card">
+    <h2><span class="n">2</span>兑换三步</h2>
+    <div class="step"><span class="n">1</span><p>下载 <b>Muse App</b> 并注册一个新账号。</p></div>
+    <div class="step"><span class="n">2</span><p>打开 <code>Settings &gt; Redeem token</code>。</p></div>
+    <div class="step"><span class="n">3</span><p><b>加入后 48 小时内</b>填入邀请码。双方各得奖励 token，具体数字以 App 内页面显示为准——拖过 48 小时就失效了。</p></div>
+  </div>
+
+  <!-- 留一个码 -->
+  <div class="card">
+    <h2><span class="n">3</span>留一个码</h2>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:14px">用完上面的码？把你自己的邀请码留下来，让下一个人接上——接力就是这样传下去的。</p>
+    <div class="field">
+      <label for="inCode">你的邀请码</label>
+      <input id="inCode" maxlength="12" placeholder="例如 RXQT1I" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="inRemain">这个码大概还能用几次（不知道就空着）</label>
+      <input class="num" id="inRemain" type="number" min="1" max="999" placeholder="留空 = 未知">
+      <div class="hint">剩余次数多的码会排在前面展示。</div>
+    </div>
+    <button class="btn" id="leaveBtn">把我的码留进池子</button>
+    <div class="demo-note">演示版说明：这个页面没有后端，你留下的码只保存在<b>你这台设备的浏览器</b>里（localStorage），别人看不到；取用计数也是本机计数。正式版会接入共享池，到时全网接力。</div>
+  </div>
+
+  <!-- 池子 -->
+  <div class="card">
+    <h2><span class="n">4</span>池子里现在有</h2>
+    <div id="poolList"></div>
+    <div class="demo-note">同上：演示版池子数据仅存于本机浏览器，正式共享池上线后替换。</div>
+  </div>
+
+  <footer>
+    <b>Muse 邀请码接力池</b> · 演示版<br>
+    邀请码以 App 内兑换结果为准 · 第 5 位是数字 1 不是字母 I
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var KEY = 'relay_pool_v1';
+  var SEED = { code:'RXQT1I', remain:null, taken:0, pinned:true, badge:'站长码', ts:0, mine:false };
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){ var arr = JSON.parse(raw); if(Array.isArray(arr)) return arr; }
+    }catch(e){}
+    return [Object.assign({}, SEED)];
+  }
+  function save(arr){ try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){} }
+
+  function sortPool(arr){
+    return arr.slice().sort(function(a,b){
+      if(!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+      var ra = a.remain==null ? -1 : a.remain, rb = b.remain==null ? -1 : b.remain;
+      if(ra !== rb) return rb - ra;
+      return b.ts - a.ts;
+    });
+  }
+
+  var pool = load();
+  var idx = 0;
+
+  var $nowCode=document.getElementById('nowCode'),
+      $nowBadge=document.getElementById('nowBadge'),
+      $nowRemain=document.getElementById('nowRemain'),
+      $nowTaken=document.getElementById('nowTaken'),
+      $poolList=document.getElementById('poolList'),
+      $toast=document.getElementById('toast');
+
+  var toastTimer=null;
+  function toast(msg){
+    $toast.textContent=msg;
+    $toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ $toast.classList.remove('show'); },1800);
+  }
+
+  function copyText(txt, okMsg){
+    function done(){ toast(okMsg||'已复制，去 App 里粘贴吧'); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done).catch(function(){ fallback(); });
+    } else fallback();
+    function fallback(){
+      var ta=document.createElement('textarea');
+      ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); done(); }catch(e){ toast('复制失败，请手动长按复制'); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  function current(){ return sortPool(pool)[idx] || pool[0]; }
+
+  function renderNow(){
+    var c = current();
+    $nowCode.textContent = c.code;
+    $nowBadge.textContent = c.badge || (c.mine ? '我留下的' : '池友码');
+    $nowBadge.style.background = c.pinned ? '' : '#6F6459';
+    $nowRemain.textContent = (c.remain==null ? '未知（以 App 为准）' : c.remain + ' 次');
+    $nowTaken.textContent = c.taken || 0;
+  }
+
+  function renderPool(){
+    var arr = sortPool(pool);
+    if(!arr.length){ $poolList.innerHTML='<div class="empty">池子空了，快留一个码进来。</div>'; return; }
+    $poolList.innerHTML='';
+    arr.forEach(function(c){
+      var div=document.createElement('div');
+      div.className='pool-item';
+      var info = (c.badge||(c.mine?'我留下的':'池友码')) +
+        ' · 剩余 ' + (c.remain==null?'未知':('<b>'+c.remain+'</b>')) +
+        ' · 本机取用 <b>'+(c.taken||0)+'</b>';
+      div.innerHTML='<div class="code">'+escapeHtml(c.code)+'</div>'+
+        '<div class="info">'+info+'</div>';
+      var b=document.createElement('button');
+      b.className='mini'; b.textContent='复制';
+      b.onclick=function(){ copyText(c.code); };
+      div.appendChild(b);
+      $poolList.appendChild(div);
+    });
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+  function render(){ renderNow(); renderPool(); }
+
+  document.getElementById('copyNow').onclick=function(){
+    copyText(current().code);
+  };
+
+  document.getElementById('takeNow').onclick=function(){
+    var arr = sortPool(pool);
+    var c = arr[idx] || arr[0];
+    c.taken = (c.taken||0)+1;
+    var real = pool.filter(function(x){ return x.code===c.code; })[0];
+    if(real) real.taken = c.taken;
+    save(pool);
+    idx = (idx+1) % arr.length;
+    render();
+    toast('已记 1 次取用（本机计数）——用完记得回来留你的码');
+  };
+
+  document.getElementById('leaveBtn').onclick=function(){
+    var codeEl=document.getElementById('inCode'),
+        remEl=document.getElementById('inRemain');
+    var code=(codeEl.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(code.length<4||code.length>12){ toast('邀请码格式不对，再检查一下'); codeEl.focus(); return; }
+    if(pool.some(function(x){ return x.code===code; })){ toast('这个码已经在池子里了'); return; }
+    var rem=parseInt(remEl.value,10);
+    pool.push({ code:code, remain:(isNaN(rem)?null:Math.max(1,Math.min(999,rem))),
+      taken:0, pinned:false, badge:'', ts:Date.now(), mine:true });
+    save(pool);
+    codeEl.value=''; remEl.value='';
+    idx=0; render();
+    toast('已留下！后来者会优先拿到剩余次数多的码');
+    document.getElementById('poolList').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
